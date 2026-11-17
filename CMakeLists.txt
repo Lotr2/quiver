@@ -28,7 +28,9 @@ include(cmake/CompilerOptions.cmake)
 add_library(quiver_core
   src/distance.cpp
   src/hnsw_index.cpp
-  src/flat_search.cpp)
+  src/flat_search.cpp
+  src/crc32.cpp
+  src/wal.cpp)
 add_library(quiver::core ALIAS quiver_core)
 target_include_directories(quiver_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
