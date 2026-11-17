@@ -26,7 +26,9 @@ include(cmake/CompilerOptions.cmake)
 # Core library: distance kernels, HNSW index, WAL, collections
 # ---------------------------------------------------------------------------
 add_library(quiver_core
-  src/distance.cpp)
+  src/distance.cpp
+  src/hnsw_index.cpp
+  src/flat_search.cpp)
 add_library(quiver::core ALIAS quiver_core)
 target_include_directories(quiver_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
