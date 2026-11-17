@@ -30,7 +30,8 @@ add_library(quiver_core
   src/hnsw_index.cpp
   src/flat_search.cpp
   src/crc32.cpp
-  src/wal.cpp)
+  src/wal.cpp
+  src/filter.cpp)
 add_library(quiver::core ALIAS quiver_core)
 target_include_directories(quiver_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
