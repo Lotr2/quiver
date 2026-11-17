@@ -1,0 +1,30 @@
+# Build trees
+build/
+build-*/
+out/
+cmake-build-*/
+
+# IDE and editor state
+.vs/
+.vscode/
+.idea/
+*.swp
+compile_commands.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# Local data: datasets and database directories
+data/
+*.fvecs
+*.ivecs
+*.bvecs
+quiver-data/
+
+# OS
+.DS_Store
+Thumbs.db

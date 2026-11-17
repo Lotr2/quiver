@@ -1,0 +1,28 @@
+# Warning, optimisation and sanitizer flags shared by every Quiver target.
+function(quiver_set_options target)
+  if(MSVC)
+    target_compile_options(${target} PRIVATE /W4 /permissive- /utf-8 /EHsc)
+    target_compile_definitions(${target} PRIVATE _CRT_SECURE_NO_WARNINGS NOMINMAX)
+    if(QUIVER_WARNINGS_AS_ERRORS)
+      target_compile_options(${target} PRIVATE /WX)
+    endif()
+  else()
+    target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic -Wshadow -Wconversion
+                                             -Wno-sign-conversion)
+    if(QUIVER_WARNINGS_AS_ERRORS)
+      target_compile_options(${target} PRIVATE -Werror)
+    endif()
+    if(QUIVER_NATIVE)
+      target_compile_options(${target} PRIVATE -march=native)
+    endif()
+    if(QUIVER_SANITIZE)
+      target_compile_options(${target} PRIVATE -fsanitize=${QUIVER_SANITIZE} -fno-omit-frame-pointer -g)
+      target_link_options(${target} PRIVATE -fsanitize=${QUIVER_SANITIZE})
+    endif()
+  endif()
+
+  if(WIN32)
+    # cpp-httplib needs Windows 10 APIs; sockets come from ws2_32.
+    target_compile_definitions(${target} PRIVATE _WIN32_WINNT=0x0A00)
+  endif()
+endfunction()
