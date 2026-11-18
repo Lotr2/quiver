@@ -1,0 +1,87 @@
+{
+  "engine": "faiss",
+  "version": "1.14.3",
+  "dataset": "sift1m",
+  "n": 1000000,
+  "dim": 128,
+  "queries": 10000,
+  "k": 10,
+  "M": 16,
+  "ef_construction": 200,
+  "threads": 8,
+  "build_seconds": 377.35265020000224,
+  "runs": [
+    {
+      "ef": 10,
+      "recall": 0.71966,
+      "qps_single_thread": 4025.5563248365374,
+      "qps_all_threads": 20646.812324839942
+    },
+    {
+      "ef": 16,
+      "recall": 0.81073,
+      "qps_single_thread": 2616.008533418606,
+      "qps_all_threads": 15589.090692022222
+    },
+    {
+      "ef": 24,
+      "recall": 0.87544,
+      "qps_single_thread": 2481.161040450662,
+      "qps_all_threads": 12064.549198839662
+    },
+    {
+      "ef": 32,
+      "recall": 0.91182,
+      "qps_single_thread": 1829.79700359964,
+      "qps_all_threads": 9768.335140636747
+    },
+    {
+      "ef": 48,
+      "recall": 0.94918,
+      "qps_single_thread": 1372.0623732964236,
+      "qps_all_threads": 7012.777467553379
+    },
+    {
+      "ef": 64,
+      "recall": 0.96826,
+      "qps_single_thread": 1067.423985482248,
+      "qps_all_threads": 5869.773441222759
+    },
+    {
+      "ef": 96,
+      "recall": 0.98437,
+      "qps_single_thread": 726.9711003545765,
+      "qps_all_threads": 4224.710313727939
+    },
+    {
+      "ef": 128,
+      "recall": 0.9908,
+      "qps_single_thread": 497.7244610027689,
+      "qps_all_threads": 3217.950672784368
+    },
+    {
+      "ef": 192,
+      "recall": 0.9959,
+      "qps_single_thread": 379.65618700167965,
+      "qps_all_threads": 2322.538006360971
+    },
+    {
+      "ef": 256,
+      "recall": 0.99764,
+      "qps_single_thread": 332.03437280925635,
+      "qps_all_threads": 2421.795735382531
+    },
+    {
+      "ef": 384,
+      "recall": 0.99882,
+      "qps_single_thread": 208.63454685244383,
+      "qps_all_threads": 1234.7973194622675
+    },
+    {
+      "ef": 512,
+      "recall": 0.99912,
+      "qps_single_thread": 152.97474708479632,
+      "qps_all_threads": 895.6718743587555
+    }
+  ]
+}
