@@ -6,7 +6,7 @@
 
 HNSW approximate nearest-neighbour search · SIMD kernels · crash-safe write-ahead log · cost-based filtered search · REST API
 
-[![CI](https://github.com/OWNER/quiver/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/quiver/actions/workflows/ci.yml)
+[![CI](https://github.com/Lotr2/quiver/actions/workflows/ci.yml/badge.svg)](https://github.com/Lotr2/quiver/actions/workflows/ci.yml)
 ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus)
 ![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20macOS%20%7C%20Windows-555)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
