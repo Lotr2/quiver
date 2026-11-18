@@ -27,7 +27,7 @@ jobs:
             cxx: clang++
             werror: ON
           - name: macOS · Apple Clang (ARM64, scalar kernels)
-            os: macos-14
+            os: macos-latest
             cxx: clang++
             werror: OFF
           - name: Windows · MSVC
