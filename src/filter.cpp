@@ -36,7 +36,11 @@ Filter Filter::parse(const nlohmann::json& spec) {
       if (condition.size() != 1) {
         throw InvalidArgument("filter on '" + field + "' must have exactly one operator");
       }
-      const auto& [op, operand] = *condition.items().begin();
+      // Keep the iterator alive: binding to *items().begin() would dangle, because
+      // the proxy it returns lives inside the temporary iterator.
+      const auto only = condition.begin();
+      const std::string op = only.key();
+      const nlohmann::json& operand = only.value();
       if (op == "$eq") {
         if (!is_indexable(operand)) throw InvalidArgument("$eq on '" + field + "' needs a scalar");
         clause.values.push_back(canonical(operand));
