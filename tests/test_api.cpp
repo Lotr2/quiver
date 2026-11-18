@@ -38,7 +38,8 @@ class ApiTest : public ::testing::Test {
   static json body(const httplib::Result& r) { return json::parse(r->body); }
 
   void create_collection(const std::string& name, int dim, const std::string& metric = "l2") {
-    const auto r = post("/collections", {{"name", name}, {"dim", dim}, {"metric", metric}, {"sync", "flush"}});
+    const auto r =
+        post("/collections", {{"name", name}, {"dim", dim}, {"metric", metric}, {"sync", "flush"}});
     ASSERT_TRUE(r);
     ASSERT_EQ(r->status, 201) << r->body;
   }
@@ -62,9 +63,12 @@ TEST_F(ApiTest, Health) {
 TEST_F(ApiTest, EndToEndUpsertSearchGetDelete) {
   create_collection("movies", 3);
   json points = json::array();
-  points.push_back({{"id", "matrix"}, {"vector", {1, 0, 0}}, {"metadata", {{"genre", "sci-fi"}, {"year", 1999}}}});
-  points.push_back({{"id", "heat"}, {"vector", {0, 1, 0}}, {"metadata", {{"genre", "crime"}, {"year", 1995}}}});
-  points.push_back({{"id", 42}, {"vector", {0.9, 0.1, 0}}, {"metadata", {{"genre", "sci-fi"}, {"year", 2010}}}});
+  points.push_back(
+      {{"id", "matrix"}, {"vector", {1, 0, 0}}, {"metadata", {{"genre", "sci-fi"}, {"year", 1999}}}});
+  points.push_back(
+      {{"id", "heat"}, {"vector", {0, 1, 0}}, {"metadata", {{"genre", "crime"}, {"year", 1995}}}});
+  points.push_back(
+      {{"id", 42}, {"vector", {0.9, 0.1, 0}}, {"metadata", {{"genre", "sci-fi"}, {"year", 2010}}}});
   auto r = post("/collections/movies/points", {{"points", points}});
   ASSERT_EQ(r->status, 200) << r->body;
   EXPECT_EQ(body(r)["upserted"], 3);
@@ -162,9 +166,11 @@ TEST_F(ApiTest, MetricsExposePrometheusText) {
   ASSERT_EQ(r->status, 200);
   const std::string& text = r->body;
   EXPECT_NE(text.find("# TYPE quiver_http_requests_total counter"), std::string::npos);
-  EXPECT_NE(text.find("quiver_http_requests_total{route=\"POST /collections/:name/search\",status=\"200\"} 1"),
-            std::string::npos);
-  EXPECT_NE(text.find("quiver_http_request_duration_seconds_bucket{route=\"POST /collections/:name/search\",le=\"+Inf\"} 1"),
+  EXPECT_NE(
+      text.find("quiver_http_requests_total{route=\"POST /collections/:name/search\",status=\"200\"} 1"),
+      std::string::npos);
+  EXPECT_NE(text.find("quiver_http_request_duration_seconds_bucket{route=\"POST "
+                      "/collections/:name/search\",le=\"+Inf\"} 1"),
             std::string::npos);
   EXPECT_NE(text.find("quiver_collection_points{collection=\"m\"} 1"), std::string::npos);
 }

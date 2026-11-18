@@ -95,7 +95,9 @@ HttpApi::Handler HttpApi::instrument(std::string route, Handler handler) {
 void HttpApi::register_routes(httplib::Server& server) {
   server.Get("/health", instrument("GET /health", [](const httplib::Request&, httplib::Response& res) {
                send(res, 200,
-                    {{"status", "ok"}, {"version", kVersion}, {"simd", std::string(to_string(detected_simd_level()))}});
+                    {{"status", "ok"},
+                     {"version", kVersion},
+                     {"simd", std::string(to_string(detected_simd_level()))}});
              }));
 
   server.Get("/metrics", instrument("GET /metrics", [this](const httplib::Request&, httplib::Response& res) {
@@ -104,7 +106,8 @@ void HttpApi::register_routes(httplib::Server& server) {
              }));
 
   // --- collections -----------------------------------------------------------
-  server.Get("/collections", instrument("GET /collections", [this](const httplib::Request&, httplib::Response& res) {
+  server.Get("/collections",
+             instrument("GET /collections", [this](const httplib::Request&, httplib::Response& res) {
                json list = json::array();
                for (const std::string& name : db_.collection_names()) {
                  try {
@@ -116,110 +119,117 @@ void HttpApi::register_routes(httplib::Server& server) {
                send(res, 200, {{"collections", list}});
              }));
 
-  server.Post("/collections", instrument("POST /collections", [this](const httplib::Request& req,
-                                                                     httplib::Response& res) {
+  server.Post("/collections",
+              instrument("POST /collections", [this](const httplib::Request& req, httplib::Response& res) {
                 const auto c = db_.create_collection(CollectionConfig::from_json(parse_body(req)));
                 send(res, 201, collection_json(c->info()));
               }));
 
-  server.Get("/collections/:name",
-             instrument("GET /collections/:name", [this](const httplib::Request& req, httplib::Response& res) {
+  server.Get("/collections/:name", instrument("GET /collections/:name", [this](const httplib::Request& req,
+                                                                               httplib::Response& res) {
                send(res, 200, collection_json(db_.collection(path_param(req, "name"))->info()));
              }));
 
-  server.Delete("/collections/:name", instrument("DELETE /collections/:name", [this](const httplib::Request& req,
-                                                                                   httplib::Response& res) {
-                  const std::string& name = path_param(req, "name");
-                  if (!db_.drop_collection(name)) throw NotFound("collection '" + name + "' does not exist");
-                  send(res, 200, {{"dropped", name}});
-                }));
+  server.Delete(
+      "/collections/:name",
+      instrument("DELETE /collections/:name", [this](const httplib::Request& req, httplib::Response& res) {
+        const std::string& name = path_param(req, "name");
+        if (!db_.drop_collection(name)) throw NotFound("collection '" + name + "' does not exist");
+        send(res, 200, {{"dropped", name}});
+      }));
 
   // --- points ------------------------------------------------------------------
   server.Post("/collections/:name/points",
-              instrument("POST /collections/:name/points", [this](const httplib::Request& req, httplib::Response& res) {
-                const auto c = db_.collection(path_param(req, "name"));
-                const json body = parse_body(req);
-                const json& raw = body.at("points");
-                if (!raw.is_array()) throw InvalidArgument("'points' must be an array");
-                std::vector<Point> points;
-                points.reserve(raw.size());
-                for (const json& p : raw) points.push_back(parse_point(p));
-                send(res, 200, {{"upserted", c->upsert(points)}});
-              }));
+              instrument("POST /collections/:name/points",
+                         [this](const httplib::Request& req, httplib::Response& res) {
+                           const auto c = db_.collection(path_param(req, "name"));
+                           const json body = parse_body(req);
+                           const json& raw = body.at("points");
+                           if (!raw.is_array()) throw InvalidArgument("'points' must be an array");
+                           std::vector<Point> points;
+                           points.reserve(raw.size());
+                           for (const json& p : raw) points.push_back(parse_point(p));
+                           send(res, 200, {{"upserted", c->upsert(points)}});
+                         }));
 
-  server.Get("/collections/:name/points/:id", instrument("GET /collections/:name/points/:id", [this](
-                                                                const httplib::Request& req, httplib::Response& res) {
-               const auto c = db_.collection(path_param(req, "name"));
-               const std::string& id = path_param(req, "id");
-               const auto p = c->get(id);
-               if (!p) throw NotFound("point '" + id + "' does not exist");
-               send(res, 200, {{"id", p->id}, {"vector", p->vector}, {"metadata", p->metadata}});
-             }));
+  server.Get("/collections/:name/points/:id",
+             instrument("GET /collections/:name/points/:id",
+                        [this](const httplib::Request& req, httplib::Response& res) {
+                          const auto c = db_.collection(path_param(req, "name"));
+                          const std::string& id = path_param(req, "id");
+                          const auto p = c->get(id);
+                          if (!p) throw NotFound("point '" + id + "' does not exist");
+                          send(res, 200, {{"id", p->id}, {"vector", p->vector}, {"metadata", p->metadata}});
+                        }));
 
   server.Delete("/collections/:name/points/:id",
-                instrument("DELETE /collections/:name/points/:id", [this](const httplib::Request& req,
-                                                                          httplib::Response& res) {
-                  const auto c = db_.collection(path_param(req, "name"));
-                  send(res, 200, {{"deleted", c->remove({path_param(req, "id")})}});
-                }));
+                instrument("DELETE /collections/:name/points/:id",
+                           [this](const httplib::Request& req, httplib::Response& res) {
+                             const auto c = db_.collection(path_param(req, "name"));
+                             send(res, 200, {{"deleted", c->remove({path_param(req, "id")})}});
+                           }));
 
   server.Post("/collections/:name/points/delete",
-              instrument("POST /collections/:name/points/delete", [this](const httplib::Request& req,
-                                                                         httplib::Response& res) {
-                const auto c = db_.collection(path_param(req, "name"));
-                const auto ids = parse_body(req).at("ids").get<std::vector<std::string>>();
-                send(res, 200, {{"deleted", c->remove(ids)}});
-              }));
+              instrument("POST /collections/:name/points/delete",
+                         [this](const httplib::Request& req, httplib::Response& res) {
+                           const auto c = db_.collection(path_param(req, "name"));
+                           const auto ids = parse_body(req).at("ids").get<std::vector<std::string>>();
+                           send(res, 200, {{"deleted", c->remove(ids)}});
+                         }));
 
   // --- search ------------------------------------------------------------------
-  server.Post("/collections/:name/search",
-              instrument("POST /collections/:name/search", [this](const httplib::Request& req, httplib::Response& res) {
-                const auto start = std::chrono::steady_clock::now();
-                const auto c = db_.collection(path_param(req, "name"));
-                const json body = parse_body(req);
-                const auto vector = body.at("vector").get<std::vector<float>>();
+  server.Post(
+      "/collections/:name/search",
+      instrument(
+          "POST /collections/:name/search", [this](const httplib::Request& req, httplib::Response& res) {
+            const auto start = std::chrono::steady_clock::now();
+            const auto c = db_.collection(path_param(req, "name"));
+            const json body = parse_body(req);
+            const auto vector = body.at("vector").get<std::vector<float>>();
 
-                SearchOptions opts;
-                opts.k = body.value("k", std::size_t{10});
-                opts.ef = body.value("ef", std::size_t{0});
-                opts.include_vectors = body.value("include_vectors", false);
-                opts.include_metadata = body.value("include_metadata", true);
-                if (body.contains("filter") && !body["filter"].is_null()) opts.filter = Filter::parse(body["filter"]);
+            SearchOptions opts;
+            opts.k = body.value("k", std::size_t{10});
+            opts.ef = body.value("ef", std::size_t{0});
+            opts.include_vectors = body.value("include_vectors", false);
+            opts.include_metadata = body.value("include_metadata", true);
+            if (body.contains("filter") && !body["filter"].is_null())
+              opts.filter = Filter::parse(body["filter"]);
 
-                const SearchResult result = c->search(vector.data(), vector.size(), opts);
-                json hits = json::array();
-                for (const Hit& h : result.hits) {
-                  json hit = {{"id", h.id}, {"score", h.score}};
-                  if (opts.include_metadata) hit["metadata"] = h.metadata;
-                  if (opts.include_vectors) hit["vector"] = h.vector;
-                  hits.push_back(std::move(hit));
-                }
-                const double took_ms =
-                    std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
-                send(res, 200,
-                     {{"hits", hits},
-                      {"plan",
-                       {{"strategy", std::string(to_string(result.plan.strategy))},
-                        {"candidates", result.plan.candidates},
-                        {"distance_computations", result.plan.distance_computations}}},
-                      {"took_ms", took_ms}});
-              }));
+            const SearchResult result = c->search(vector.data(), vector.size(), opts);
+            json hits = json::array();
+            for (const Hit& h : result.hits) {
+              json hit = {{"id", h.id}, {"score", h.score}};
+              if (opts.include_metadata) hit["metadata"] = h.metadata;
+              if (opts.include_vectors) hit["vector"] = h.vector;
+              hits.push_back(std::move(hit));
+            }
+            const double took_ms =
+                std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+            send(res, 200,
+                 {{"hits", hits},
+                  {"plan",
+                   {{"strategy", std::string(to_string(result.plan.strategy))},
+                    {"candidates", result.plan.candidates},
+                    {"distance_computations", result.plan.distance_computations}}},
+                  {"took_ms", took_ms}});
+          }));
 
   // --- maintenance -------------------------------------------------------------
   server.Post("/collections/:name/checkpoint",
-              instrument("POST /collections/:name/checkpoint", [this](const httplib::Request& req,
-                                                                      httplib::Response& res) {
-                const auto c = db_.collection(path_param(req, "name"));
-                c->checkpoint();
-                send(res, 200, collection_json(c->info()));
-              }));
+              instrument("POST /collections/:name/checkpoint",
+                         [this](const httplib::Request& req, httplib::Response& res) {
+                           const auto c = db_.collection(path_param(req, "name"));
+                           c->checkpoint();
+                           send(res, 200, collection_json(c->info()));
+                         }));
 
   server.Post("/collections/:name/compact",
-              instrument("POST /collections/:name/compact", [this](const httplib::Request& req, httplib::Response& res) {
-                const auto c = db_.collection(path_param(req, "name"));
-                c->compact();
-                send(res, 200, collection_json(c->info()));
-              }));
+              instrument("POST /collections/:name/compact",
+                         [this](const httplib::Request& req, httplib::Response& res) {
+                           const auto c = db_.collection(path_param(req, "name"));
+                           c->compact();
+                           send(res, 200, collection_json(c->info()));
+                         }));
 
   // Unknown routes get a JSON 404 rather than an empty body.
   server.set_error_handler([](const httplib::Request&, httplib::Response& res) {

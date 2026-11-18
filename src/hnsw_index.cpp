@@ -109,8 +109,7 @@ constexpr int kMaxLevel = 32;
 // ---------------------------------------------------------------------------
 // Construction and storage
 // ---------------------------------------------------------------------------
-HnswIndex::HnswIndex(Params params)
-    : params_(params), entry_snapshot_(std::uint64_t{kInvalidNode}) {
+HnswIndex::HnswIndex(Params params) : params_(params), entry_snapshot_(std::uint64_t{kInvalidNode}) {
   if (params_.dim == 0) throw InvalidArgument("dimension must be positive");
   if (params_.dim > 65536) throw InvalidArgument("dimension must be at most 65536");
   if (params_.M < 2 || params_.M > 1024) throw InvalidArgument("M must be between 2 and 1024");
@@ -328,8 +327,7 @@ void HnswIndex::connect(node_id id, int level, const std::vector<Candidate>& nei
   }
 }
 
-std::vector<node_id> HnswIndex::add_batch(const float* vectors, std::size_t count,
-                                          std::size_t threads) {
+std::vector<node_id> HnswIndex::add_batch(const float* vectors, std::size_t count, std::size_t threads) {
   std::vector<node_id> ids(count);
   if (count == 0) return ids;
   {
@@ -371,8 +369,7 @@ std::vector<node_id> HnswIndex::add_batch(const float* vectors, std::size_t coun
 // ---------------------------------------------------------------------------
 // Search
 // ---------------------------------------------------------------------------
-node_id HnswIndex::greedy_closest(const float* query, node_id entry, int level,
-                                  SearchStats* stats) const {
+node_id HnswIndex::greedy_closest(const float* query, node_id entry, int level, SearchStats* stats) const {
   node_id current = entry;
   float current_distance = distance_(query, vector(current), params_.dim);
   std::vector<std::uint32_t> neighbors(max_m_);
@@ -399,11 +396,9 @@ node_id HnswIndex::greedy_closest(const float* query, node_id entry, int level,
   return current;
 }
 
-std::vector<HnswIndex::Candidate> HnswIndex::search_layer(const float* query, node_id entry,
-                                                          std::size_t ef, int level,
-                                                          bool skip_deleted,
-                                                          const NodeFilter* admit,
-                                                          SearchStats* stats) const {
+std::vector<HnswIndex::Candidate> HnswIndex::search_layer(const float* query, node_id entry, std::size_t ef,
+                                                          int level, bool skip_deleted,
+                                                          const NodeFilter* admit, SearchStats* stats) const {
   auto visited = visited_pool_->acquire(capacity_);
   std::priority_queue<Candidate, std::vector<Candidate>, ClosestFirst> frontier;
   std::priority_queue<Candidate, std::vector<Candidate>, FarthestFirst> results;
@@ -550,10 +545,9 @@ HnswIndex::Info HnswIndex::info() const {
     degree_sum += links0(id)[0];
     upper_bytes += static_cast<std::size_t>(levels_[id]) * (max_m_ + 1) * sizeof(std::uint32_t);
   }
-  info.avg_degree_layer0 =
-      info.size ? static_cast<double>(degree_sum) / static_cast<double>(info.size) : 0.0;
-  info.memory_bytes = capacity_ * params_.dim * sizeof(float) +
-                      links0_.size() * sizeof(std::uint32_t) + upper_bytes + capacity_ * 2;
+  info.avg_degree_layer0 = info.size ? static_cast<double>(degree_sum) / static_cast<double>(info.size) : 0.0;
+  info.memory_bytes = capacity_ * params_.dim * sizeof(float) + links0_.size() * sizeof(std::uint32_t) +
+                      upper_bytes + capacity_ * 2;
   return info;
 }
 

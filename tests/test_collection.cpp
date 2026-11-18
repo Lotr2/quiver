@@ -22,7 +22,8 @@ CollectionConfig config(std::size_t dim = 8, Metric metric = Metric::L2) {
   return c;
 }
 
-std::vector<Point> make_points(std::size_t n, std::size_t dim, unsigned seed, const std::string& prefix = "p") {
+std::vector<Point> make_points(std::size_t n, std::size_t dim, unsigned seed,
+                               const std::string& prefix = "p") {
   const auto data = testing::random_vectors(n, dim, seed);
   std::vector<Point> points(n);
   for (std::size_t i = 0; i < n; ++i) {

@@ -48,12 +48,12 @@ class HnswIndex {
   };
 
   struct Info {
-    std::size_t size = 0;           ///< nodes in the graph, including tombstones
-    std::size_t deleted = 0;        ///< tombstoned nodes
+    std::size_t size = 0;     ///< nodes in the graph, including tombstones
+    std::size_t deleted = 0;  ///< tombstoned nodes
     std::size_t capacity = 0;
     int max_level = -1;
     double avg_degree_layer0 = 0.0;
-    std::size_t memory_bytes = 0;   ///< vectors + links, excluding allocator overhead
+    std::size_t memory_bytes = 0;  ///< vectors + links, excluding allocator overhead
   };
 
   explicit HnswIndex(Params params);
@@ -73,8 +73,7 @@ class HnswIndex {
   /// (clamped to at least k). When `filter` is given, only nodes it accepts are
   /// returned; the graph is still traversed through rejected nodes.
   std::vector<Neighbor> search(const float* query, std::size_t k, std::size_t ef,
-                               const NodeFilter* filter = nullptr,
-                               SearchStats* stats = nullptr) const;
+                               const NodeFilter* filter = nullptr, SearchStats* stats = nullptr) const;
 
   /// Exact search over an explicit candidate list. This is what the query planner
   /// picks when a filter is so selective that walking the graph would be wasteful.
@@ -121,9 +120,8 @@ class HnswIndex {
 
   /// Beam search on one layer (Algorithm 2). Returns up to ef candidates sorted by
   /// distance. When `admit` is set, only admitted live nodes enter the result set.
-  std::vector<Candidate> search_layer(const float* query, node_id entry, std::size_t ef,
-                                      int level, bool skip_deleted, const NodeFilter* admit,
-                                      SearchStats* stats) const;
+  std::vector<Candidate> search_layer(const float* query, node_id entry, std::size_t ef, int level,
+                                      bool skip_deleted, const NodeFilter* admit, SearchStats* stats) const;
 
   /// Neighbour-selection heuristic (Algorithm 4): keep a candidate only if it is
   /// closer to the base than to every neighbour already kept. This keeps links
@@ -140,8 +138,8 @@ class HnswIndex {
 
   // Storage. Everything indexed by node_id; guarded by resize_mutex_ for growth.
   std::size_t capacity_ = 0;
-  std::unique_ptr<float[]> vectors_;          // capacity * dim
-  std::vector<std::uint32_t> links0_;         // capacity * (max_m0 + 1): [count, ids...]
+  std::unique_ptr<float[]> vectors_;                           // capacity * dim
+  std::vector<std::uint32_t> links0_;                          // capacity * (max_m0 + 1): [count, ids...]
   std::vector<std::unique_ptr<std::uint32_t[]>> upper_links_;  // per node, levels 1..L
   std::vector<std::int8_t> levels_;
   std::unique_ptr<std::atomic<std::uint8_t>[]> deleted_;

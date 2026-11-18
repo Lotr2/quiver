@@ -51,7 +51,8 @@ std::uint32_t file_crc(const fs::path& path, std::uint64_t length) {
   std::uint32_t crc = 0;
   while (length > 0) {
     const auto chunk = static_cast<std::size_t>(std::min<std::uint64_t>(buffer.size(), length));
-    if (!in.read(buffer.data(), static_cast<std::streamsize>(chunk))) throw CorruptionError("snapshot is truncated");
+    if (!in.read(buffer.data(), static_cast<std::streamsize>(chunk)))
+      throw CorruptionError("snapshot is truncated");
     crc = crc32(buffer.data(), chunk, crc);
     length -= chunk;
   }
@@ -113,7 +114,8 @@ void CollectionConfig::validate() const {
   }
   if (dim == 0 || dim > 65536) throw InvalidArgument("dim must be between 1 and 65536");
   if (M < 2 || M > 1024) throw InvalidArgument("M must be between 2 and 1024");
-  if (ef_construction == 0 || ef_construction > 100000) throw InvalidArgument("ef_construction must be between 1 and 100000");
+  if (ef_construction == 0 || ef_construction > 100000)
+    throw InvalidArgument("ef_construction must be between 1 and 100000");
   if (ef_search == 0 || ef_search > 100000) throw InvalidArgument("ef_search must be between 1 and 100000");
 }
 
@@ -260,7 +262,8 @@ void Collection::apply_upsert(const std::vector<Point>& points) {
   const std::size_t dim = config_.dim;
   std::vector<float> flat(points.size() * dim);
   for (std::size_t i = 0; i < points.size(); ++i) {
-    std::copy(points[i].vector.begin(), points[i].vector.end(), flat.begin() + static_cast<std::ptrdiff_t>(i * dim));
+    std::copy(points[i].vector.begin(), points[i].vector.end(),
+              flat.begin() + static_cast<std::ptrdiff_t>(i * dim));
   }
   const std::size_t threads = points.size() < kParallelInsertThreshold ? 1 : config_.insert_threads;
   const std::vector<node_id> new_nodes = index_->add_batch(flat.data(), points.size(), threads);
@@ -347,7 +350,8 @@ std::vector<node_id> Collection::filter_candidates(const Filter& filter) const {
     std::vector<node_id> matches;
     for (const std::string& value : clause.values) {
       const auto list = field->second.find(value);
-      if (list != field->second.end()) matches.insert(matches.end(), list->second.begin(), list->second.end());
+      if (list != field->second.end())
+        matches.insert(matches.end(), list->second.begin(), list->second.end());
     }
     std::sort(matches.begin(), matches.end());
     matches.erase(std::unique(matches.begin(), matches.end()), matches.end());
@@ -356,12 +360,14 @@ std::vector<node_id> Collection::filter_candidates(const Filter& filter) const {
       first = false;
     } else {
       std::vector<node_id> both;
-      std::set_intersection(result.begin(), result.end(), matches.begin(), matches.end(), std::back_inserter(both));
+      std::set_intersection(result.begin(), result.end(), matches.begin(), matches.end(),
+                            std::back_inserter(both));
       result = std::move(both);
     }
     if (result.empty()) return result;
   }
-  result.erase(std::remove_if(result.begin(), result.end(), [&](node_id n) { return !alive_[n]; }), result.end());
+  result.erase(std::remove_if(result.begin(), result.end(), [&](node_id n) { return !alive_[n]; }),
+               result.end());
   return result;
 }
 
@@ -369,7 +375,8 @@ float Collection::to_score(float distance) const noexcept {
   return config_.metric == Metric::L2 ? distance : 1.0f - distance;
 }
 
-SearchResult Collection::search(const float* query, std::size_t query_dim, const SearchOptions& options) const {
+SearchResult Collection::search(const float* query, std::size_t query_dim,
+                                const SearchOptions& options) const {
   if (query_dim != config_.dim) {
     throw InvalidArgument("query has dimension " + std::to_string(query_dim) + ", collection expects " +
                           std::to_string(config_.dim));
@@ -523,7 +530,8 @@ void Collection::load_snapshot() {
   std::ifstream in(path, std::ios::binary);
   char magic[sizeof(kSnapshotMagic)];
   in.read(magic, sizeof(magic));
-  if (!std::equal(magic, magic + sizeof(magic), kSnapshotMagic)) throw CorruptionError("not a Quiver snapshot");
+  if (!std::equal(magic, magic + sizeof(magic), kSnapshotMagic))
+    throw CorruptionError("not a Quiver snapshot");
   std::uint64_t lsn = 0, nodes = 0;
   in.read(reinterpret_cast<char*>(&lsn), sizeof(lsn));
   in.read(reinterpret_cast<char*>(&nodes), sizeof(nodes));

@@ -46,16 +46,15 @@ std::vector<std::size_t> parse_list(const std::string& s) {
 }
 
 void usage() {
-  std::cout
-      << "Usage: quiver-bench (--base F --query F [--gt F] | --synthetic N,DIM,NQ) [options]\n"
-         "  --limit N        use only the first N base vectors (ground truth is recomputed)\n"
-         "  --metric M       l2 | ip | cosine (default l2)\n"
-         "  --M N            graph degree (default 16)\n"
-         "  --efc N          ef_construction (default 200)\n"
-         "  --ef A,B,...     ef_search values to sweep\n"
-         "  --k N            neighbours per query (default 10)\n"
-         "  --threads N      build/search threads (default: all cores)\n"
-         "  --json PATH      write results as JSON\n";
+  std::cout << "Usage: quiver-bench (--base F --query F [--gt F] | --synthetic N,DIM,NQ) [options]\n"
+               "  --limit N        use only the first N base vectors (ground truth is recomputed)\n"
+               "  --metric M       l2 | ip | cosine (default l2)\n"
+               "  --M N            graph degree (default 16)\n"
+               "  --efc N          ef_construction (default 200)\n"
+               "  --ef A,B,...     ef_search values to sweep\n"
+               "  --k N            neighbours per query (default 10)\n"
+               "  --threads N      build/search threads (default: all cores)\n"
+               "  --json PATH      write results as JSON\n";
 }
 
 Args parse_args(int argc, char** argv) {
@@ -66,17 +65,28 @@ Args parse_args(int argc, char** argv) {
       if (i + 1 >= argc) throw std::runtime_error("missing value for " + arg);
       return argv[++i];
     };
-    if (arg == "--base") a.base = next();
-    else if (arg == "--query") a.query = next();
-    else if (arg == "--gt") a.gt = next();
-    else if (arg == "--json") a.json_out = next();
-    else if (arg == "--metric") a.metric = next();
-    else if (arg == "--limit") a.limit = std::stoul(next());
-    else if (arg == "--M") a.M = std::stoul(next());
-    else if (arg == "--efc") a.ef_construction = std::stoul(next());
-    else if (arg == "--k") a.k = std::stoul(next());
-    else if (arg == "--threads") a.threads = std::stoul(next());
-    else if (arg == "--ef") a.ef = parse_list(next());
+    if (arg == "--base")
+      a.base = next();
+    else if (arg == "--query")
+      a.query = next();
+    else if (arg == "--gt")
+      a.gt = next();
+    else if (arg == "--json")
+      a.json_out = next();
+    else if (arg == "--metric")
+      a.metric = next();
+    else if (arg == "--limit")
+      a.limit = std::stoul(next());
+    else if (arg == "--M")
+      a.M = std::stoul(next());
+    else if (arg == "--efc")
+      a.ef_construction = std::stoul(next());
+    else if (arg == "--k")
+      a.k = std::stoul(next());
+    else if (arg == "--threads")
+      a.threads = std::stoul(next());
+    else if (arg == "--ef")
+      a.ef = parse_list(next());
     else if (arg == "--synthetic") {
       const auto v = parse_list(next());
       if (v.size() != 3) throw std::runtime_error("--synthetic expects N,DIM,NQ");
@@ -135,12 +145,15 @@ int main(int argc, char** argv) try {
     query = quiver::tools::read_fvecs(args.query);
   }
   if (metric == quiver::Metric::Cosine) {
-    for (std::size_t i = 0; i < base.rows; ++i) quiver::normalize(base.data.data() + i * base.cols, base.cols);
-    for (std::size_t i = 0; i < query.rows; ++i) quiver::normalize(query.data.data() + i * query.cols, query.cols);
+    for (std::size_t i = 0; i < base.rows; ++i)
+      quiver::normalize(base.data.data() + i * base.cols, base.cols);
+    for (std::size_t i = 0; i < query.rows; ++i)
+      quiver::normalize(query.data.data() + i * query.cols, query.cols);
   }
   const std::size_t n = base.rows, nq = query.rows, dim = base.cols, k = args.k;
-  std::cerr << "quiver-bench " << quiver::kVersion << " | simd=" << quiver::to_string(quiver::detected_simd_level())
-            << " | n=" << n << " dim=" << dim << " queries=" << nq << " threads=" << threads << "\n";
+  std::cerr << "quiver-bench " << quiver::kVersion
+            << " | simd=" << quiver::to_string(quiver::detected_simd_level()) << " | n=" << n
+            << " dim=" << dim << " queries=" << nq << " threads=" << threads << "\n";
 
   // ---- ground truth -------------------------------------------------------------
   std::vector<std::vector<node_id>> truth;
@@ -171,12 +184,12 @@ int main(int argc, char** argv) try {
   }
   const auto info = index.info();
   std::cerr << "build: " << build_seconds << " s (" << static_cast<double>(n) / build_seconds
-            << " vectors/s), memory " << static_cast<double>(info.memory_bytes) / (1 << 20) << " MiB, max level "
-            << info.max_level << ", avg degree " << info.avg_degree_layer0 << "\n\n";
+            << " vectors/s), memory " << static_cast<double>(info.memory_bytes) / (1 << 20)
+            << " MiB, max level " << info.max_level << ", avg degree " << info.avg_degree_layer0 << "\n\n";
 
   // ---- sweep --------------------------------------------------------------------
-  std::printf("%6s %9s %12s %12s %10s %10s %12s\n", "ef", "recall", "QPS(1 thr)", "QPS(all)", "p50 us", "p99 us",
-              "dist/query");
+  std::printf("%6s %9s %12s %12s %10s %10s %12s\n", "ef", "recall", "QPS(1 thr)", "QPS(all)", "p50 us",
+              "p99 us", "dist/query");
   nlohmann::json runs = nlohmann::json::array();
   for (const std::size_t ef : args.ef) {
     // Single-threaded pass: latency distribution and recall.
@@ -224,22 +237,21 @@ int main(int argc, char** argv) try {
   }
 
   if (!args.json_out.empty()) {
-    const nlohmann::json report = {
-        {"engine", "quiver"},
-        {"version", quiver::kVersion},
-        {"simd", std::string(quiver::to_string(quiver::detected_simd_level()))},
-        {"dataset", dataset},
-        {"n", n},
-        {"dim", dim},
-        {"queries", nq},
-        {"k", k},
-        {"metric", args.metric},
-        {"M", args.M},
-        {"ef_construction", args.ef_construction},
-        {"threads", threads},
-        {"build_seconds", build_seconds},
-        {"memory_bytes", info.memory_bytes},
-        {"runs", runs}};
+    const nlohmann::json report = {{"engine", "quiver"},
+                                   {"version", quiver::kVersion},
+                                   {"simd", std::string(quiver::to_string(quiver::detected_simd_level()))},
+                                   {"dataset", dataset},
+                                   {"n", n},
+                                   {"dim", dim},
+                                   {"queries", nq},
+                                   {"k", k},
+                                   {"metric", args.metric},
+                                   {"M", args.M},
+                                   {"ef_construction", args.ef_construction},
+                                   {"threads", threads},
+                                   {"build_seconds", build_seconds},
+                                   {"memory_bytes", info.memory_bytes},
+                                   {"runs", runs}};
     std::ofstream(args.json_out) << report.dump(2) << "\n";
     std::cerr << "\nwrote " << args.json_out << "\n";
   }

@@ -43,7 +43,8 @@ inline std::vector<float> random_vectors(std::size_t n, std::size_t dim, unsigne
 
 /// Gaussian blobs around `clusters` random centres: closer to real embeddings
 /// than isotropic noise, and the regime where HNSW's heuristic matters.
-inline std::vector<float> clustered_vectors(std::size_t n, std::size_t dim, std::size_t clusters, unsigned seed) {
+inline std::vector<float> clustered_vectors(std::size_t n, std::size_t dim, std::size_t clusters,
+                                            unsigned seed) {
   std::mt19937 rng(seed);
   std::normal_distribution<float> normal;
   std::vector<float> centres(clusters * dim);

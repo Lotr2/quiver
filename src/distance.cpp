@@ -176,7 +176,9 @@ const Dispatch& dispatch() noexcept {
 
 }  // namespace
 
-SimdLevel detected_simd_level() noexcept { return dispatch().level; }
+SimdLevel detected_simd_level() noexcept {
+  return dispatch().level;
+}
 
 std::string_view to_string(SimdLevel level) noexcept {
   switch (level) {

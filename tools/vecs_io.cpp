@@ -32,7 +32,8 @@ Matrix<T> read_vecs(const std::string& path, std::size_t limit) {
     std::int32_t d = 0;
     in.read(reinterpret_cast<char*>(&d), sizeof(d));
     if (d != dim) throw std::runtime_error(path + ": inconsistent dimension at row " + std::to_string(i));
-    in.read(reinterpret_cast<char*>(m.data.data() + i * m.cols), static_cast<std::streamsize>(m.cols * sizeof(T)));
+    in.read(reinterpret_cast<char*>(m.data.data() + i * m.cols),
+            static_cast<std::streamsize>(m.cols * sizeof(T)));
     if (!in) throw std::runtime_error(path + ": truncated at row " + std::to_string(i));
   }
   return m;
@@ -40,7 +41,9 @@ Matrix<T> read_vecs(const std::string& path, std::size_t limit) {
 
 }  // namespace
 
-Matrix<float> read_fvecs(const std::string& path, std::size_t limit) { return read_vecs<float>(path, limit); }
+Matrix<float> read_fvecs(const std::string& path, std::size_t limit) {
+  return read_vecs<float>(path, limit);
+}
 
 Matrix<std::int32_t> read_ivecs(const std::string& path, std::size_t limit) {
   return read_vecs<std::int32_t>(path, limit);

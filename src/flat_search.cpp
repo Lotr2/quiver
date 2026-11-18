@@ -11,8 +11,8 @@
 namespace quiver {
 
 std::vector<std::vector<node_id>> exact_knn(const float* data, std::size_t n, const float* queries,
-                                            std::size_t nq, std::size_t dim, std::size_t k,
-                                            Metric metric, std::size_t threads) {
+                                            std::size_t nq, std::size_t dim, std::size_t k, Metric metric,
+                                            std::size_t threads) {
   std::vector<std::vector<node_id>> result(nq);
   const DistanceFn distance = distance_function(metric);
   if (threads == 0) threads = std::max(1u, std::thread::hardware_concurrency());
@@ -54,7 +54,8 @@ double recall_at_k(const std::vector<std::vector<node_id>>& truth,
   std::size_t hits = 0;
   for (std::size_t q = 0; q < truth.size() && q < found.size(); ++q) {
     const std::size_t kt = std::min(k, truth[q].size());
-    std::unordered_set<node_id> expected(truth[q].begin(), truth[q].begin() + static_cast<std::ptrdiff_t>(kt));
+    std::unordered_set<node_id> expected(truth[q].begin(),
+                                         truth[q].begin() + static_cast<std::ptrdiff_t>(kt));
     const std::size_t kf = std::min(k, found[q].size());
     for (std::size_t j = 0; j < kf; ++j) hits += expected.count(found[q][j]);
   }

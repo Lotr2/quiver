@@ -32,8 +32,8 @@ std::uint32_t crc32(const void* data, std::size_t size, std::uint32_t crc) noexc
   while (size >= 4) {
     crc ^= static_cast<std::uint32_t>(p[0]) | (static_cast<std::uint32_t>(p[1]) << 8) |
            (static_cast<std::uint32_t>(p[2]) << 16) | (static_cast<std::uint32_t>(p[3]) << 24);
-    crc = kTables[3][crc & 0xFFu] ^ kTables[2][(crc >> 8) & 0xFFu] ^
-          kTables[1][(crc >> 16) & 0xFFu] ^ kTables[0][crc >> 24];
+    crc = kTables[3][crc & 0xFFu] ^ kTables[2][(crc >> 8) & 0xFFu] ^ kTables[1][(crc >> 16) & 0xFFu] ^
+          kTables[0][crc >> 24];
     p += 4;
     size -= 4;
   }

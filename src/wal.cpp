@@ -109,8 +109,7 @@ std::uint32_t record_crc(std::uint64_t lsn, std::string_view payload) {
 
 }  // namespace
 
-WalWriter::WalWriter(std::filesystem::path path, SyncMode mode)
-    : path_(std::move(path)), mode_(mode) {
+WalWriter::WalWriter(std::filesystem::path path, SyncMode mode) : path_(std::move(path)), mode_(mode) {
   file_ = open_file(path_, "ab");
   if (!file_) throw Error("cannot open write-ahead log " + path_.string());
   std::error_code ec;
@@ -118,7 +117,9 @@ WalWriter::WalWriter(std::filesystem::path path, SyncMode mode)
   if (ec) size_ = 0;
 }
 
-WalWriter::~WalWriter() { close(); }
+WalWriter::~WalWriter() {
+  close();
+}
 
 void WalWriter::close() noexcept {
   if (file_) {

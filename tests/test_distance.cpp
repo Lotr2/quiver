@@ -38,7 +38,8 @@ TEST(Distance, ScalarKernelsMatchReference) {
   const std::size_t dim = 97;
   const auto a = testing::random_vectors(1, dim, 1);
   const auto b = testing::random_vectors(1, dim, 2);
-  EXPECT_NEAR(kernels::l2_squared_scalar(a.data(), b.data(), dim), reference_l2(a.data(), b.data(), dim), 1e-3);
+  EXPECT_NEAR(kernels::l2_squared_scalar(a.data(), b.data(), dim), reference_l2(a.data(), b.data(), dim),
+              1e-3);
   EXPECT_NEAR(kernels::dot_scalar(a.data(), b.data(), dim), reference_dot(a.data(), b.data(), dim), 1e-3);
 }
 
@@ -50,7 +51,8 @@ TEST(Distance, Avx2MatchesScalarWhenAvailable) {
     const auto b = testing::random_vectors(1, dim, 4);
     EXPECT_NEAR(kernels::l2_squared_avx2(a.data(), b.data(), dim),
                 kernels::l2_squared_scalar(a.data(), b.data(), dim), 1e-3);
-    EXPECT_NEAR(kernels::dot_avx2(a.data(), b.data(), dim), kernels::dot_scalar(a.data(), b.data(), dim), 1e-3);
+    EXPECT_NEAR(kernels::dot_avx2(a.data(), b.data(), dim), kernels::dot_scalar(a.data(), b.data(), dim),
+                1e-3);
   }
 }
 #endif

@@ -34,9 +34,7 @@ class ByteWriter {
     const auto* p = reinterpret_cast<const char*>(&value);
     buffer_.append(p, sizeof(T));
   }
-  void bytes(const void* data, std::size_t size) {
-    buffer_.append(static_cast<const char*>(data), size);
-  }
+  void bytes(const void* data, std::size_t size) { buffer_.append(static_cast<const char*>(data), size); }
   void str(std::string_view s) {
     pod(static_cast<std::uint32_t>(s.size()));
     buffer_.append(s.data(), s.size());

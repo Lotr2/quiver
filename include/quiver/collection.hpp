@@ -44,7 +44,7 @@ struct Point {
 
 struct SearchOptions {
   std::size_t k = 10;
-  std::size_t ef = 0;                ///< 0 = collection default
+  std::size_t ef = 0;  ///< 0 = collection default
   std::optional<Filter> filter;
   bool include_vectors = false;
   bool include_metadata = true;
@@ -54,7 +54,7 @@ struct SearchOptions {
 struct QueryPlan {
   enum class Strategy { Graph, FilteredGraph, ExactScan };
   Strategy strategy = Strategy::Graph;
-  std::size_t candidates = 0;        ///< points passing the filter (0 if unfiltered)
+  std::size_t candidates = 0;  ///< points passing the filter (0 if unfiltered)
   std::size_t distance_computations = 0;
 };
 std::string_view to_string(QueryPlan::Strategy strategy) noexcept;
@@ -75,8 +75,8 @@ struct SearchResult {
 
 struct CollectionInfo {
   CollectionConfig config;
-  std::size_t points = 0;            ///< live points
-  std::size_t tombstones = 0;        ///< deleted or overwritten, awaiting compaction
+  std::size_t points = 0;      ///< live points
+  std::size_t tombstones = 0;  ///< deleted or overwritten, awaiting compaction
   std::uint64_t wal_bytes = 0;
   std::uint64_t last_lsn = 0;
   std::uint64_t checkpoint_lsn = 0;
@@ -148,9 +148,9 @@ class Collection {
   bool closed_ = false;
 
   std::unique_ptr<HnswIndex> index_;
-  std::vector<std::string> ids_;              // node -> external id
-  std::vector<nlohmann::json> metadata_;      // node -> metadata
-  std::vector<std::uint8_t> alive_;           // node -> 1 if live
+  std::vector<std::string> ids_;                    // node -> external id
+  std::vector<nlohmann::json> metadata_;            // node -> metadata
+  std::vector<std::uint8_t> alive_;                 // node -> 1 if live
   std::unordered_map<std::string, node_id> nodes_;  // external id -> live node
   // Inverted index over scalar metadata: field -> canonical value -> nodes.
   // Posting lists keep dead nodes; readers check alive_.
