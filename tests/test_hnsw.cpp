@@ -22,6 +22,16 @@ std::vector<std::vector<node_id>> run_queries(const HnswIndex& index, const std:
   return out;
 }
 
+/// Ground truth is in input-row order, but a parallel add_batch assigns node ids in
+/// completion order. Translate rows to the ids the index actually assigned.
+std::vector<std::vector<node_id>> to_node_ids(std::vector<std::vector<node_id>> truth,
+                                              const std::vector<node_id>& ids) {
+  for (auto& row : truth) {
+    for (auto& id : row) id = ids[id];
+  }
+  return truth;
+}
+
 HnswIndex::Params params(std::size_t dim, Metric metric = Metric::L2) {
   HnswIndex::Params p;
   p.dim = dim;
@@ -69,8 +79,8 @@ TEST(Hnsw, HighRecallOnClusteredData) {
   const auto data = testing::clustered_vectors(n, dim, 50, 11);
   const auto queries = testing::clustered_vectors(nq, dim, 50, 12);
   HnswIndex index(params(dim));
-  index.add_batch(data.data(), n, 0);
-  const auto truth = exact_knn(data.data(), n, queries.data(), nq, dim, k, Metric::L2);
+  const auto ids = index.add_batch(data.data(), n, 0);
+  const auto truth = to_node_ids(exact_knn(data.data(), n, queries.data(), nq, dim, k, Metric::L2), ids);
   const double recall = recall_at_k(truth, run_queries(index, queries, nq, k, 128), k);
   EXPECT_GE(recall, 0.97) << "recall@10 at ef=128";
 }
@@ -80,8 +90,8 @@ TEST(Hnsw, RecallImprovesWithEf) {
   const auto data = testing::random_vectors(n, dim, 21);
   const auto queries = testing::random_vectors(nq, dim, 22);
   HnswIndex index(params(dim));
-  index.add_batch(data.data(), n, 0);
-  const auto truth = exact_knn(data.data(), n, queries.data(), nq, dim, k, Metric::L2);
+  const auto ids = index.add_batch(data.data(), n, 0);
+  const auto truth = to_node_ids(exact_knn(data.data(), n, queries.data(), nq, dim, k, Metric::L2), ids);
   const double low = recall_at_k(truth, run_queries(index, queries, nq, k, 10), k);
   const double high = recall_at_k(truth, run_queries(index, queries, nq, k, 400), k);
   EXPECT_LT(low, high);
