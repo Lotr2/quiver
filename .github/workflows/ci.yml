@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux · GCC
+            os: ubuntu-24.04
+            cxx: g++
+            werror: ON
+          - name: Linux · Clang
+            os: ubuntu-24.04
+            cxx: clang++
+            werror: ON
+          - name: macOS · Apple Clang (ARM64, scalar kernels)
+            os: macos-14
+            cxx: clang++
+            werror: OFF
+          - name: Windows · MSVC
+            os: windows-2022
+            cxx: cl
+            werror: OFF
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+      - uses: seanmiddleditch/gha-setup-ninja@v5
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          -DQUIVER_WARNINGS_AS_ERRORS=${{ matrix.werror }}
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --parallel 2
+
+  sanitizers:
+    name: Sanitizers · ${{ matrix.sanitizer }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sanitizer: address,undefined
+            filter: "*"
+          # ThreadSanitizer focuses on the concurrent index and collection code.
+          - sanitizer: thread
+            filter: "Hnsw.*:Collection.*:Database.*"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_COMPILER=clang++
+          -DQUIVER_SANITIZE=${{ matrix.sanitizer }} -DQUIVER_BUILD_TOOLS=OFF
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Test
+        env:
+          ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+          TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1
+        run: ./build/tests/quiver_tests --gtest_filter='${{ matrix.filter }}'
+
+  python-client:
+    name: Python client · end-to-end
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build server
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DQUIVER_BUILD_TESTS=OFF -DQUIVER_BUILD_TOOLS=OFF
+          cmake --build build --parallel
+      - name: Install client
+        run: pip install ./clients/python pytest scikit-learn
+      - name: Run tests and example against a live server
+        run: |
+          ./build/quiver-server --port 7070 --data-dir "$RUNNER_TEMP/quiver" &
+          for i in $(seq 1 50); do curl -sf localhost:7070/health && break; sleep 0.2; done
+          QUIVER_URL=http://127.0.0.1:7070 pytest -v clients/python/tests
+          python examples/semantic_search.py
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: quiver:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test
+        run: |
+          docker run -d --name quiver -p 7070:7070 quiver:ci
+          for i in $(seq 1 50); do curl -sf localhost:7070/health && break; sleep 0.2; done
+          curl -sf localhost:7070/health
+
+  format:
+    name: clang-format
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install "clang-format==21.*"
+      - run: >
+          clang-format --dry-run --Werror
+          include/quiver/*.hpp src/*.cpp src/*.hpp server/*.cpp server/*.hpp
+          tools/*.cpp tools/*.hpp tests/*.cpp tests/*.hpp
