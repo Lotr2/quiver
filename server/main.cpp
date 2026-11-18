@@ -19,7 +19,9 @@ namespace {
 
 std::atomic<bool> g_stop_requested{false};
 
-extern "C" void on_signal(int) { g_stop_requested.store(true); }
+extern "C" void on_signal(int) {
+  g_stop_requested.store(true);
+}
 
 struct Options {
   std::string host = "0.0.0.0";
@@ -93,7 +95,8 @@ int main(int argc, char** argv) {
 
   quiver::HttpApi api(*db);
   httplib::Server server;
-  const std::size_t threads = options.threads ? options.threads : std::max(4u, std::thread::hardware_concurrency());
+  const std::size_t threads =
+      options.threads ? options.threads : std::max(4u, std::thread::hardware_concurrency());
   server.new_task_queue = [threads] { return new httplib::ThreadPool(threads); };
   server.set_payload_max_length(256ull << 20);
   server.set_keep_alive_max_count(1000);
@@ -102,6 +105,13 @@ int main(int argc, char** argv) {
     server.set_logger([](const httplib::Request& req, const httplib::Response& res) {
       std::fprintf(stderr, "%s %s -> %d\n", req.method.c_str(), req.path.c_str(), res.status);
     });
+  }
+
+  // Bind before announcing anything, so a busy port fails fast with a clear message.
+  if (!server.bind_to_port(options.host, options.port)) {
+    std::cerr << "quiver: cannot bind " << options.host << ":" << options.port
+              << " (is another process using the port?)\n";
+    return 1;
   }
 
   std::signal(SIGINT, on_signal);
@@ -115,7 +125,7 @@ int main(int argc, char** argv) {
             << " | data=" << options.data_dir << " | collections=" << db->collection_names().size()
             << "\nlistening on http://" << options.host << ":" << options.port << "\n";
 
-  const bool ok = server.listen(options.host, options.port);
+  server.listen_after_bind();
   g_stop_requested.store(true);
   watcher.join();
 
@@ -124,10 +134,6 @@ int main(int argc, char** argv) {
     db->checkpoint_all();
   } catch (const std::exception& e) {
     std::cerr << "quiver: checkpoint failed: " << e.what() << " (the WAL still has every write)\n";
-    return 1;
-  }
-  if (!ok) {
-    std::cerr << "quiver: could not listen on " << options.host << ":" << options.port << "\n";
     return 1;
   }
   return 0;
